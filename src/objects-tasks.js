@@ -344,32 +344,111 @@ function group(array, keySelector, valueSelector) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  str: '',
+  hasElement: false,
+  hasId: false,
+  hasPseudoElement: false,
+  order: 0,
+
+  checkOrder(order) {
+    if (order < this.order)
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  error() {
+    throw new Error(
+      'Element, id and pseudo-element should not occur more then one time inside the selector'
+    );
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    const order = 1;
+
+    this.checkOrder(order);
+    if (this.hasElement) this.error();
+    // else this.hasElement = true;
+
+    const obj = Object.create(this);
+    obj.str += `${value}`;
+    obj.hasElement = true;
+    obj.order = order;
+    return obj;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    const order = 2;
+
+    this.checkOrder(order);
+    if (this.hasId) this.error();
+    // else this.hasId = true;
+
+    const obj = Object.create(this);
+    obj.str += `#${value}`;
+    obj.hasId = true;
+    obj.order = order;
+    return obj;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    const order = 3;
+
+    this.checkOrder(order);
+    const obj = Object.create(this);
+
+    obj.str += `.${value}`;
+    obj.order = order;
+    return obj;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    const order = 4;
+
+    this.checkOrder(order);
+    const obj = Object.create(this);
+
+    obj.str += `[${value}]`;
+    obj.order = order;
+    return obj;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    const order = 5;
+
+    this.checkOrder(order);
+    const obj = Object.create(this);
+
+    obj.str += `:${value}`;
+    obj.order = order;
+    return obj;
+  },
+
+  pseudoElement(value) {
+    const order = 6;
+
+    this.checkOrder(order);
+    if (this.hasPseudoElement) this.error();
+    // else this.hasPseudoElement = true;
+
+    const obj = Object.create(this);
+    obj.str += `::${value}`;
+    obj.hasPseudoElement = true;
+    obj.order = order;
+    return obj;
+  },
+
+  combine(selector1, combinator, selector2) {
+    const left = selector1.stringify();
+    const right = selector2.stringify();
+    this.str = `${left} ${combinator} ${right}`;
+    return this;
+  },
+
+  stringify() {
+    const result = this.str;
+    this.str = '';
+    return result;
   },
 };
 
